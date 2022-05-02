@@ -1,0 +1,102 @@
+﻿@page "/counter"
+@using System.Data
+@using System.Globalization
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<section>
+    <div class="container">
+        <label id="display" >@_current</label>
+        <div class="buttons">
+            <div class="button" @onclick='() => CalcButtonClick("CLEAR")'>C</div>
+            <div class="button" @onclick='e => CalcButtonClick("/")'>/</div >
+            <div class="button" @onclick='() => CalcButtonClick("*")'>*</div >
+            <div class="button" @onclick='() => CalcButtonClick("DEL")'>&larr;</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(7))">7</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(8))">8</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(9))">9</div>
+            <div class="button" @onclick='() => CalcButtonClick("-")'>-</div >
+            <div class="button" @onclick="@(e => NumberButtonClick(4))">4</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(5))">5</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(6))">6</div>
+            <div class="button" @onclick='() => CalcButtonClick("+")'>+</div >
+            <div class="button" @onclick="@(e => NumberButtonClick(1))">1</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(3))">2</div>
+            <div class="button" @onclick="@(e => NumberButtonClick(3))">3</div>            
+            <div class="button" @onclick='() => CalcButtonClick(".")'>.</div >
+            <div class="button" @onclick='() => CalcButtonClick("(")'>(</div >
+            <div class="button" @onclick="@(e => NumberButtonClick(0))">0</div>
+            <div class="button" @onclick='() => CalcButtonClick(")")'>)</div >
+            <div class="button" @onclick='() => CalcButtonClick("=")'>=</div>
+        </div>
+    </div>
+</section>
+
+
+@code {
+    private string _current = "";
+    private string _allOperations = "+-*/";
+    private string _lastOperation = string.Empty;
+
+    void NumberButtonClick(int number)
+    {
+        if (_lastOperation == "=")
+        {
+            _current = string.Empty;
+            _lastOperation = string.Empty;
+        }
+            
+        _current = string.Format($"{_current}{number}");
+    }
+    
+    void CalcButtonClick (string operation)
+    {
+        switch (operation)
+        {
+            case "CLEAR":
+                _lastOperation = string.Empty;
+                _current = string.Empty;
+                break;
+            case "DEL":
+                _current = _current[..^1];
+                break;
+            case "=":
+                if (_current.Length > 0)
+                {
+                    var result = new DataTable().Compute(_current, null);
+                    var ans = Convert.ToDouble(result);
+                    _lastOperation = "=";
+                    _current = ans.ToString(CultureInfo.InvariantCulture);
+                }
+                break;
+            default:
+                if (_current.Length == 0)
+                {
+                    if (operation == "-")
+                        _current += operation;
+                    break;
+                }
+                if (_allOperations.Contains(operation))
+                {
+                    _lastOperation = string.Empty;
+                    var lastEntered = _current[^1];
+                    if (_allOperations.Contains(lastEntered))
+                    {
+                        _current = string.Format($"{_current[..^1]}{operation[0]}") ;
+                    }
+                    else
+                    {
+                        _current += operation;
+                    }
+                }
+                else
+                {
+                    if (operation != "." || _current[^1] != '.')
+                        _current += operation;
+                }
+                break;
+        }
+    }
+}
