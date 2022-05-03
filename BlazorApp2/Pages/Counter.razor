@@ -63,40 +63,97 @@
                 _current = _current[..^1];
                 break;
             case "=":
-                if (_current.Length > 0)
-                {
-                    var result = new DataTable().Compute(_current, null);
-                    var ans = Convert.ToDouble(result);
-                    _lastOperation = "=";
-                    _current = ans.ToString(CultureInfo.InvariantCulture);
-                }
+                CountResult();
                 break;
             default:
-                if (_current.Length == 0)
-                {
-                    if (operation == "-")
-                        _current += operation;
-                    break;
-                }
-                if (_allOperations.Contains(operation))
-                {
-                    _lastOperation = string.Empty;
-                    var lastEntered = _current[^1];
-                    if (_allOperations.Contains(lastEntered))
-                    {
-                        _current = string.Format($"{_current[..^1]}{operation[0]}") ;
-                    }
-                    else
-                    {
-                        _current += operation;
-                    }
-                }
-                else
-                {
-                    if (operation != "." || _current[^1] != '.')
-                        _current += operation;
-                }
+                HandleOperations(operation);
                 break;
         }
     }
+
+    private void CountResult()
+    {
+        if (_current.Length <= 0) return;
+        if (CouldClosed()) return;
+
+        var result = Math.Round(Convert.ToDouble(new DataTable().Compute(_current, String.Empty)), 5);
+        _lastOperation = "=";
+        _current = result.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private void HandleOperations(string operation)
+    {
+        if (_current.Length == 0)
+        {
+            if ("-(.".Contains(operation))
+                _current += operation;
+            return;
+        }
+        
+        
+        if (_allOperations.Contains(operation))
+        {
+            AddOperation(operation);
+        }
+        else
+        {
+            AddAnother(operation);
+        }
+    }
+
+    private void AddAnother(string operation)
+    {
+        switch (operation)
+        {
+            case "(":
+                if (_allOperations.Contains(_current[^1]))
+                    _current += operation;
+                else
+                {
+                    _current += string.Format($"*{operation}");
+                    _lastOperation = string.Empty;
+                }
+                break;
+            case ")":
+                if (CouldClosed())
+                {
+                    _current += operation;
+                }
+                break;
+            default:
+            {
+                if (operation != "." || _current[^1] != '.')
+                    _current += operation;
+                break;  
+            }
+        }
+    }
+
+    private bool CouldClosed()
+    {
+        var stack = new Stack<bool>();
+        foreach (var operation in _current)
+        {
+            if (operation == '(')
+                stack.Push(true);
+            if (operation == ')')
+                stack.Pop();
+        }
+        return (stack.Count >= 1);
+    }
+
+    private void AddOperation(string operation)
+    {
+        _lastOperation = string.Empty;
+        var lastEntered = _current[^1];
+        if (_allOperations.Contains(lastEntered))
+        {
+            _current = string.Format($"{_current[..^1]}{operation[0]}");
+        }
+        else
+        {
+            _current += operation;
+        }
+    }
+
 }
