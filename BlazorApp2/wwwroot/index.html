@@ -10,6 +10,21 @@
     <link href="css/app.css" rel="stylesheet" />
     <link href="css/calc.css" rel="stylesheet" />
     <link href="BlazorApp2.styles.css" rel="stylesheet" />
+    <script type='text/javascript'>
+        function addField(){
+            // Get the element where the inputs will be added to
+            var container = document.getElementById("nominals");
+            // Append a node with a random text
+            container.appendChild(document.createTextNode("Member " + 1));
+            // Create an <input> element, set its type and name attributes
+            var input = document.createElement("input");
+            input.type = "text";
+            input.name = "member" + i;
+            container.appendChild(input);
+            // Append a line break 
+            container.appendChild(document.createElement("br"));
+        }
+    </script>
 </head>
 
 <body>
